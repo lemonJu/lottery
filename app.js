@@ -9,6 +9,7 @@ var User = require('./model/user')
 var Notice = require('./model/notice')
 // var multer = require('multer');
 
+const methods = [ 'get', 'post', 'put', 'delete' ];
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var noticeRouter = require('./routes/notice');
@@ -29,6 +30,26 @@ const sequelize = new Sequelize('lottery', 'root', 'as123123', {
   // http://docs.sequelizejs.com/manual/tutorial/querying.html#operators
   operatorsAliases: false
 });
+
+for (let method of methods) {
+  app[method] = function (...data){
+   if (method === 'get' && data.length === 1) return app.set(data[0]);
+  
+   const params = [];
+   for (let item of data) {
+    if (Object.prototype.toString.call(item) !== '[object AsyncFunction]') {
+     params.push(item);
+     continue;
+    }
+    const handle = function (...data){
+     const [ req, res, next ] = data;
+     item(req, res, next).then(next).catch(next);
+    };
+    params.push(handle);
+   }
+   router[method](...params);
+  };
+}
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');

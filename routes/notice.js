@@ -20,21 +20,19 @@ router.get('/getList', async function(req, res, next) {
   const { pageSize, pageIndex } = req.query
   const { Notice } = req.model
 
-  Notice.findAndCountAll({
+  const result = await Notice.findAndCountAll({
     offset: (parseInt(pageIndex) - 1) * parseInt(pageSize),
     limit:  parseInt(pageIndex),
     where: {}
-  }).then(result =>{
-    res.json({
-      success: true,
-      data: {
-        data: result.rows,
-        pageSize, pageIndex,
-        total: result.count
-      }
-    })
-  }).catch(e =>{
-    res.end(JSON.stringify(e))
+  })
+
+  res.json({
+    success: true,
+    data: {
+      data: result.rows,
+      pageSize, pageIndex,
+      total: result.count
+    }
   })
 });
 
